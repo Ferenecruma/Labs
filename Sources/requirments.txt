@@ -1,12 +1,9 @@
 astroid==2.3.3
 Click==7.0
 cycler==0.10.0
-Flask==1.1.1
-Flask-Cors==3.0.8
 gekko==0.2.6
 isort==4.3.21
 itsdangerous==1.1.0
-Jinja2==2.11.1
 kiwisolver==1.1.0
 lazy-object-proxy==1.4.3
 MarkupSafe==1.1.1
