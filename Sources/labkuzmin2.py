@@ -9,7 +9,7 @@ def FitnessFunc(arr): #Функція Розстрігіна для н-вимі�
         result+=(1-arr[i])**2+100*(arr[i+1]-arr[i]**2)**2
     return result
 
-N, M, eps = 10, 1, 0.00001 #N - Кількість членів популяції,M - Розмірність простору 
+N, M, eps = 10, 2, 0.00001 #N - Кількість членів популяції,M - Розмірність простору 
 Xmin, Xmax = [], []
 for i in range(M):
     temp1, temp2 = random.uniform(-10, 10), random.uniform(-10, 10)
@@ -26,7 +26,6 @@ def GenerationDec(N=N, M=M, Xmin=Xmin, Xmax=Xmax):
     for i in range(N):
         for j in range(M):
             matr[i, j] = random.uniform(Xmin[j], Xmax[j])
-    print(matr)
     return matr
 
 
@@ -70,40 +69,47 @@ def ACodDecimal(Gbin ,N = N, M = M, Xmin = Xmin):
     for i in range(N):
         for j in range(M):
             Gdec[i][j] = CodDecimal(Gbin[i][j],Xmin[j],dd[j])
-    for row in Gdec:
-        print(row)
     return Gdec 
 
 
 def Mutation(G,p):
-    Gmut = G.copy()
-    for i in range(len(G)):
-        for j in range(len(G[0])):
-            prob = random.random()
-            if(prob > p):
-                if(Gmut[i,j] == '1'):
-                    Gmut[i,j] = '0'
-                else:
-                    Gmut[i,j] = '1'
-    return Gmut
+    for person in G:
+        for param in person:
+            for i in range(len(param)):
+                randomNum = random.uniform(0,1)
+                if(param[i] == '1' and randomNum < p):
+                    param[i] = '0'
+                elif(randomNum < p):
+                    param[i] = '1'
 
 
-def Crossover(G,Mlist,Flist): #Mlist и Flist - списки чисел из которых будут формироватся пары 
-    for i in range(len(Mlist)):
-        cros = random.randint(1,len(G[0]))
-        for j in range(cros):
-            G[Mlist[i],j], G[Flist[i],j] = G[Flist[i],j], G[Mlist[i],j]
-
+def Crossover(G,BestIndex,SecondBestIndex): #Mlist и Flist - списки чисел из которых будут формироватся пары 
+    Best, SecondBest= G[BestIndex], G[SecondBestIndex]
+    for BitsB,BitS in zip(Best,SecondBest):
+        randomPoint = random.randint(0,len(BitsB))
+        for i in range(randomPoint):
+            BitS[i], BitsB[i] = BitsB[i], BitS[i]
+    return Best, SecondBest
 # ACodDecimal(ACodBinary(Gdec=GenerationDec()))
 
 #тепер треба реалізувати вибір найкращого члена популяції та передачі його генів іншим членам
-fitnessValues = {}
-sortedIndexes = []
-Gdec = GenerationDec()
-for count, row in enumerate(Gdec):
-    fitnessValues[count] = FitnessFunc(row)
-for w in sorted(fitnessValues,key = fitnessValues.get,reverse=True):
-    sortedIndexes.append(w)
-    print(w, fitnessValues[w])
-print(sortedIndexes)
-print(ACodBinary(Gdec))
+
+Gdec = GenerationDec() #Початкова популяція
+i = 0
+while(i<10000):
+    fitnessValues = {}
+    sortedIndexes = []
+
+    for count, row in enumerate(Gdec):
+        fitnessValues[count] = FitnessFunc(row)
+    for w in sorted(fitnessValues,key = fitnessValues.get,reverse=True): #Шукаємо значення фітнес функції для популяції і упорядковуємо
+        sortedIndexes.append(w)
+
+    Bdec = ACodBinary(Gdec) #Переводимо числа в бінарний код
+    Best,SecondBest = Crossover(Bdec,sortedIndexes[0],sortedIndexes[1]) #найкращі дві особини кросовирятся - створюють дві нові
+    Bdec[sortedIndexes[-1]], Bdec[sortedIndexes[-2]] = SecondBest, Best #Добавляємо нащадків в популяцію,замість найгірших
+    Mutation(Bdec,0.6) #Мутація популяції,тепер треба зробити так щоб кращі мотували менше
+    Gdec = ACodDecimal(Bdec)
+    print(fitnessValues[sortedIndexes[0]])
+    i+=1
+
