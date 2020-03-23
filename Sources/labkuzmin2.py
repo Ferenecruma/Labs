@@ -4,16 +4,16 @@ import math
 import copy
 
 
-def FitnessFunc(arr): #Функція Розстрігіна для н-вимірного випадку
+def FitnessFunc(arr): #Функція Розенброка для н-вимірного випадку
     result=0
     for i in range(len(arr)-1):
         result+=(1-arr[i])**2+100*(arr[i+1]-arr[i]**2)**2
     return result
 
-N, M, eps = 10, 2, 0.1 #N - Кількість членів популяції,M - Розмірність простору 
+N, M, eps = 4, 2, 0.001 #N - Кількість членів популяції,M - Розмірність простору 
 Xmin, Xmax = [], []
 for i in range(M):
-    temp1, temp2 = random.uniform(-10, 10), random.uniform(-10, 10)
+    temp1, temp2 = random.uniform(-2, 2), random.uniform(-2, 2)
     if(temp1 > temp2):
         Xmax.append(temp1)
         Xmin.append(temp2)
@@ -73,30 +73,42 @@ def ACodDecimal(Gbin ,N = N, M = M, Xmin = Xmin):
     return Gdec 
 
 
-def Mutation(G,L): #L - Лист індексів впорядкованих за зменшенням значення фітнес функції
-    for count, index in enumerate(L):
-        for param in G[index]:
-            print("param: {}".format(param))
+def Mutation(G,p): #L - Лист індексів впорядкованих за зменшенням значення фітнес функції
+    for j in range(N-2):
+        for param in G[j]:
+            # print("param: {}".format(param))
             for i in range(len(param)):
                 randomNum = random.uniform(0,1)
-                if(param[i] == '1' and randomNum < 2*(1 - 1/(count+1))):
+                if(param[i] == '1' and randomNum < p):
                     param[i] = '0'
-                elif(randomNum < 2*(1 - 1/(count+1))):
+                elif(randomNum < p):
                     param[i] = '1'
-            print("param1: {}\n".format(param))
+            # print("param1: {}\n".format(param))
             
 
+def Crossover(G,BestIndex,SecondBestIndex): #Створюэтся нове покоління за рахунок двох найкращих
+    offsprings = []
+    # for row in G:
+    #     print(row)
+    for _ in range((N-2)//2):
+        firsOffspring, secondOffspring = [], []
+        Best, SecondBest= copy.deepcopy(G[BestIndex]), copy.deepcopy(G[SecondBestIndex])
+        for BitsB,BitS in zip(Best,SecondBest):
+            randomPoint = random.randint(0,len(BitsB))
+            for j in range(randomPoint):
+                BitS[j], BitsB[j] = BitsB[j], BitS[j]
+            firsOffspring.append(BitS)
+            secondOffspring.append(BitsB)
+        offsprings.append(firsOffspring)
+        offsprings.append(secondOffspring)
+    offsprings.append(G[BestIndex])
+    offsprings.append(G[SecondBestIndex])
+    # print("\n")
+    # for row in offsprings:
+    #     print(row)
+    # print("---------------------------------Row")
+    return offsprings
 
-def Crossover(G,BestIndex,SecondBestIndex): #Mlist и Flist - списки чисел из которых будут формироватся пары 
-    Best, SecondBest= G[BestIndex], G[SecondBestIndex]
-    for BitsB,BitS in zip(Best,SecondBest):
-        randomPoint = random.randint(0,len(BitsB))
-        for i in range(randomPoint):
-            BitS[i], BitsB[i] = BitsB[i], BitS[i]
-    return Best, SecondBest
-# ACodDecimal(ACodBinary(Gdec=GenerationDec()))
-
-#тепер треба реалізувати вибір найкращого члена популяції та передачі його генів іншим членам
 
 Gdec = GenerationDec() #Початкова популяція
 i = 0
@@ -108,11 +120,11 @@ while(i<10):
         fitnessValues[count] = FitnessFunc(row)
     for w in sorted(fitnessValues,key = fitnessValues.get,reverse=False): #Шукаємо значення фітнес функції для популяції і упорядковуємо
         sortedIndexes.append(w)
+    print(fitnessValues[sortedIndexes[1]])
 
     Bdec = ACodBinary(Gdec) #Переводимо числа в бінарний код
-    Best,SecondBest = Crossover(Bdec,sortedIndexes[0],sortedIndexes[1]) #найкращі дві особини кросовирятся - створюють дві нові
-    Bdec[sortedIndexes[-1]], Bdec[sortedIndexes[-2]] = SecondBest, Best #Добавляємо нащадків в популяцію,замість найгірших
-    Mutation(Bdec,sortedIndexes) #Найкращі мутують менше
+    Bdec = Crossover(Bdec,sortedIndexes[0],sortedIndexes[1]) #найкращі дві особини кросовирятся - створюють нове покоління
+    Mutation(Bdec,1) #Покоління мутує окрім батьків 
     Gdec = ACodDecimal(Bdec)
     # print("Gdec: {}".format(Gdec))
     i+=1
