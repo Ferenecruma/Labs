@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import math 
+import copy
 
 
 def FitnessFunc(arr): #Функція Розстрігіна для н-вимірного випадку
@@ -9,7 +10,7 @@ def FitnessFunc(arr): #Функція Розстрігіна для н-вимі�
         result+=(1-arr[i])**2+100*(arr[i+1]-arr[i]**2)**2
     return result
 
-N, M, eps = 10, 2, 0.00001 #N - Кількість членів популяції,M - Розмірність простору 
+N, M, eps = 10, 2, 0.1 #N - Кількість членів популяції,M - Розмірність простору 
 Xmin, Xmax = [], []
 for i in range(M):
     temp1, temp2 = random.uniform(-10, 10), random.uniform(-10, 10)
@@ -72,15 +73,18 @@ def ACodDecimal(Gbin ,N = N, M = M, Xmin = Xmin):
     return Gdec 
 
 
-def Mutation(G,p):
-    for person in G:
-        for param in person:
+def Mutation(G,L): #L - Лист індексів впорядкованих за зменшенням значення фітнес функції
+    for count, index in enumerate(L):
+        for param in G[index]:
+            print("param: {}".format(param))
             for i in range(len(param)):
                 randomNum = random.uniform(0,1)
-                if(param[i] == '1' and randomNum < p):
+                if(param[i] == '1' and randomNum < 2*(1 - 1/(count+1))):
                     param[i] = '0'
-                elif(randomNum < p):
+                elif(randomNum < 2*(1 - 1/(count+1))):
                     param[i] = '1'
+            print("param1: {}\n".format(param))
+            
 
 
 def Crossover(G,BestIndex,SecondBestIndex): #Mlist и Flist - списки чисел из которых будут формироватся пары 
@@ -96,20 +100,20 @@ def Crossover(G,BestIndex,SecondBestIndex): #Mlist и Flist - списки чи�
 
 Gdec = GenerationDec() #Початкова популяція
 i = 0
-while(i<10000):
+while(i<10):
     fitnessValues = {}
     sortedIndexes = []
 
     for count, row in enumerate(Gdec):
         fitnessValues[count] = FitnessFunc(row)
-    for w in sorted(fitnessValues,key = fitnessValues.get,reverse=True): #Шукаємо значення фітнес функції для популяції і упорядковуємо
+    for w in sorted(fitnessValues,key = fitnessValues.get,reverse=False): #Шукаємо значення фітнес функції для популяції і упорядковуємо
         sortedIndexes.append(w)
 
     Bdec = ACodBinary(Gdec) #Переводимо числа в бінарний код
     Best,SecondBest = Crossover(Bdec,sortedIndexes[0],sortedIndexes[1]) #найкращі дві особини кросовирятся - створюють дві нові
     Bdec[sortedIndexes[-1]], Bdec[sortedIndexes[-2]] = SecondBest, Best #Добавляємо нащадків в популяцію,замість найгірших
-    Mutation(Bdec,0.6) #Мутація популяції,тепер треба зробити так щоб кращі мотували менше
+    Mutation(Bdec,sortedIndexes) #Найкращі мутують менше
     Gdec = ACodDecimal(Bdec)
-    print(fitnessValues[sortedIndexes[0]])
+    # print("Gdec: {}".format(Gdec))
     i+=1
 
