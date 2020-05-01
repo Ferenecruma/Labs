@@ -43,22 +43,18 @@ nn, dd, NN= BinDecParam(eps)
 
 def CodBinary(xdec, xmin, I, d):
     xx = math.floor((xdec-xmin)/d)
-    # print("xx: {}".format(xx))
-    # print("d: {} xmin: {}".format(d,xmin))
     binarr = list(np.binary_repr(xx, I))
     return binarr
 
 
 def CodDecimal(xbin, xmin, d):
     xdec1 = int(''.join(xbin), 2)
-    # print("xdec: {} ".format(xdec1))
-    # print("d: {} xmin: {}".format(d,xmin))
     xdec = xmin + d*xdec1
     return xdec
 
 
 def ACodBinary(Gdec , N=N, M=M, Xmin=Xmin):
-    Gbin = [[0]*M for i in range(N)] #Не можна заповнювати np.array ітераційними елементами?
+    Gbin = [[0]*M for i in range(N)] 
     for i in range(N):
         for j in range(M):
             Gbin[i][j] = CodBinary(Gdec[i][j],Xmin[j],nn[j],dd[j])
@@ -76,20 +72,16 @@ def ACodDecimal(Gbin ,N = N, M = M, Xmin = Xmin):
 def Mutation(G,p): #L - Лист індексів впорядкованих за зменшенням значення фітнес функції
     for j in range(N-2):
         for param in G[j]:
-            # print("param: {}".format(param))
             for i in range(len(param)):
                 randomNum = random.uniform(0,1)
                 if(param[i] == '1' and randomNum < p):
                     param[i] = '0'
                 elif(randomNum < p):
-                    param[i] = '1'
-            # print("param1: {}\n".format(param))
+                    param[i] = '1'          
             
 
 def Crossover(G,BestIndex,SecondBestIndex): #Створюэтся нове покоління за рахунок двох найкращих
     offsprings = []
-    # for row in G:
-    #     print(row)
     for _ in range((N-2)//2):
         firsOffspring, secondOffspring = [], []
         Best, SecondBest= copy.deepcopy(G[BestIndex]), copy.deepcopy(G[SecondBestIndex])
@@ -103,10 +95,6 @@ def Crossover(G,BestIndex,SecondBestIndex): #Створюэтся нове по�
         offsprings.append(secondOffspring)
     offsprings.append(G[BestIndex])
     offsprings.append(G[SecondBestIndex])
-    # print("\n")
-    # for row in offsprings:
-    #     print(row)
-    # print("---------------------------------Row")
     return offsprings
 
 
@@ -120,12 +108,10 @@ while(i<10):
         fitnessValues[count] = FitnessFunc(row)
     for w in sorted(fitnessValues,key = fitnessValues.get,reverse=False): #Шукаємо значення фітнес функції для популяції і упорядковуємо
         sortedIndexes.append(w)
-    print(fitnessValues[sortedIndexes[1]])
 
     Bdec = ACodBinary(Gdec) #Переводимо числа в бінарний код
     Bdec = Crossover(Bdec,sortedIndexes[0],sortedIndexes[1]) #найкращі дві особини кросовирятся - створюють нове покоління
     Mutation(Bdec,1) #Покоління мутує окрім батьків 
-    Gdec = ACodDecimal(Bdec)
-    # print("Gdec: {}".format(Gdec))
+    Gdec = ACodDecimal(Bdec
     i+=1
 
